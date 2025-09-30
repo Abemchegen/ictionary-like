@@ -2,7 +2,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Users, Plus, ArrowRight, Gamepad2, Paintbrush } from "lucide-react";
+import {
+  Users,
+  Plus,
+  ArrowRight,
+  Gamepad2,
+  Paintbrush,
+  PaintRoller,
+} from "lucide-react";
 
 interface GameLobbyProps {
   onCreateRoom: (roomId: string, type: string) => void;
@@ -12,20 +19,37 @@ interface GameLobbyProps {
 export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
   const [roomId, setRoomId] = useState("");
   const [playerName, setPlayerName] = useState("");
+  const [error, setError] = useState<string>("");
 
   const handleCreateRoom = () => {
-    if (!playerName.trim()) return;
+    if (!playerName.trim()) {
+      setError("እባክዎ ስምዎን ያስገቡ");
+      return;
+    }
+    setError("");
     const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
     onCreateRoom(newRoomId, "private");
   };
 
   const handleJoinCommonRoom = () => {
-    if (!playerName.trim()) return;
+    if (!playerName.trim()) {
+      setError("እባክዎ ስምዎን ያስገቡ ");
+      return;
+    }
+    setError("");
     onJoinRoom("COMMON", "Common");
   };
 
   const handleJoinPrivateRoom = () => {
-    if (!playerName.trim() || !roomId.trim()) return;
+    if (!playerName.trim()) {
+      setError("እባክዎ ስምዎን ያስገቡ");
+      return;
+    }
+    if (!roomId.trim()) {
+      setError("እባክዎ የክፍል ቁጥሩን ያስገቡ");
+      return;
+    }
+    setError("");
     onJoinRoom(roomId.toUpperCase(), "private");
   };
 
@@ -35,28 +59,30 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <Paintbrush className="w-10 h-10 text-primary" />
             <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              ይሳሉ ይገምቱ
+              ይሳሉ ይገምቱ ያሸንፉ!
             </h1>
           </div>
-          <p className="text-xl text-muted-foreground">
-            Draw, Guess & Win in Amharic!
-          </p>
         </div>
 
         {/* Player Name Input */}
         <Card className="p-6 mb-8 bg-gradient-game border-primary/20">
           <div className="max-w-md mx-auto">
-            <label className="block text-sm font-medium mb-2">
-              የእርስዎ ስም (Your Name)
-            </label>
+            <label className="block text-sm font-medium mb-2">የእርስዎ ስም</label>
             <Input
               placeholder="እዚህ ስምዎን ያስገቡ..."
               value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
+              onChange={(e) => {
+                setPlayerName(e.target.value);
+                if (error) setError("");
+              }}
               className="text-center text-lg bg-game-surface border-primary/30"
             />
+            {error && (
+              <div className="text-red-500 text-sm mt-2 text-center">
+                {error}
+              </div>
+            )}
           </div>
         </Card>
 
@@ -78,7 +104,6 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
               </div>
               <Button
                 onClick={handleCreateRoom}
-                disabled={!playerName.trim()}
                 variant="game"
                 size="lg"
                 className="w-full"
@@ -103,7 +128,6 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
               </div>
               <Button
                 onClick={handleJoinCommonRoom}
-                disabled={!playerName.trim()}
                 variant="accent"
                 size="lg"
                 className="w-full"
