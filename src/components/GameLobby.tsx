@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Users, Plus, ArrowRight, Gamepad2 } from "lucide-react";
+import { Users, Plus, ArrowRight, Gamepad2, Paintbrush } from "lucide-react";
 
 interface GameLobbyProps {
-  onCreateRoom: (roomId: string) => void;
-  onJoinRoom: (roomId: string) => void;
+  onCreateRoom: (roomId: string, type: string) => void;
+  onJoinRoom: (roomId: string, type: string) => void;
 }
 
 export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
@@ -16,17 +16,17 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
   const handleCreateRoom = () => {
     if (!playerName.trim()) return;
     const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    onCreateRoom(newRoomId);
+    onCreateRoom(newRoomId, "private");
   };
 
   const handleJoinCommonRoom = () => {
     if (!playerName.trim()) return;
-    onJoinRoom("COMMON");
+    onJoinRoom("COMMON", "Common");
   };
 
   const handleJoinPrivateRoom = () => {
     if (!playerName.trim() || !roomId.trim()) return;
-    onJoinRoom(roomId.toUpperCase());
+    onJoinRoom(roomId.toUpperCase(), "private");
   };
 
   return (
@@ -35,9 +35,9 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <Gamepad2 className="w-12 h-12 text-primary" />
-            <h1 className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              አማርኛ ስክሪብል
+            <Paintbrush className="w-10 h-10 text-primary" />
+            <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              ይሳሉ ይገምቱ
             </h1>
           </div>
           <p className="text-xl text-muted-foreground">
@@ -69,7 +69,9 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
                 <Plus className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold mb-2">ክፍል ፍጠር</h3>
+                <h3 className="text-2xl font-bold mb-2">
+                  የግል ክፍል ፈጥረው ጓደኞችዎን ይጋብዙ{" "}
+                </h3>
                 <p className="text-muted-foreground">
                   Create a private room and invite friends
                 </p>
@@ -82,7 +84,7 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
                 className="w-full"
               >
                 <Plus className="w-5 h-5" />
-                Create Room
+                ክፍል ፍጠር
               </Button>
             </div>
           </Card>
@@ -94,7 +96,7 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
                 <Users className="w-8 h-8 text-accent" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold mb-2">የጋራ ክፍል</h3>
+                <h3 className="text-2xl font-bold mb-2">የጋራ ክፍል ገብተው ይጫወቱ</h3>
                 <p className="text-muted-foreground">
                   Join the public room and play with everyone
                 </p>
@@ -107,7 +109,7 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
                 className="w-full"
               >
                 <Users className="w-5 h-5" />
-                Join Common Room
+                የጋራ ክፍል ግባ
               </Button>
             </div>
           </Card>
@@ -116,10 +118,10 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
         {/* Join Private Room */}
         <Card className="mt-8 p-6 bg-game-surface border-border">
           <div className="max-w-md mx-auto text-center space-y-4">
-            <h4 className="font-semibold text-lg">የግል ክፍል ተቀላቀል</h4>
+            <h4 className="font-semibold text-lg">የግል ክፍል ይቀላቀሉ</h4>
             <div className="flex gap-2">
               <Input
-                placeholder="Room Code"
+                placeholder="የክፍል ሚስጥር ቁጥር"
                 value={roomId}
                 onChange={(e) => setRoomId(e.target.value.toUpperCase())}
                 className="bg-background border-primary/30"

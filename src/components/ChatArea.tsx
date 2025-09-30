@@ -10,7 +10,7 @@ export interface ChatMessage {
   playerName: string;
   message: string;
   timestamp: Date;
-  type: 'guess' | 'correct' | 'close' | 'system';
+  type: "guess" | "correct" | "close" | "system";
   isCorrect?: boolean;
 }
 
@@ -21,7 +21,12 @@ interface ChatAreaProps {
   canGuess: boolean;
 }
 
-export const ChatArea = ({ messages, onSendMessage, isDrawing, canGuess }: ChatAreaProps) => {
+export const ChatArea = ({
+  messages,
+  onSendMessage,
+  isDrawing,
+  canGuess,
+}: ChatAreaProps) => {
   const [currentMessage, setCurrentMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -36,20 +41,20 @@ export const ChatArea = ({ messages, onSendMessage, isDrawing, canGuess }: ChatA
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMessage.trim() || isDrawing || !canGuess) return;
-    
+
     onSendMessage(currentMessage.trim());
     setCurrentMessage("");
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   const getMessageIcon = (message: ChatMessage) => {
     switch (message.type) {
-      case 'correct':
+      case "correct":
         return <CheckCircle className="w-4 h-4 text-success" />;
-      case 'close':
+      case "close":
         return <AlertCircle className="w-4 h-4 text-warning" />;
       default:
         return <MessageCircle className="w-4 h-4 text-muted-foreground" />;
@@ -58,14 +63,14 @@ export const ChatArea = ({ messages, onSendMessage, isDrawing, canGuess }: ChatA
 
   const getMessageStyle = (message: ChatMessage) => {
     switch (message.type) {
-      case 'correct':
-        return 'bg-success/10 border-success/30 text-success-foreground';
-      case 'close':
-        return 'bg-warning/10 border-warning/30 text-warning-foreground';
-      case 'system':
-        return 'bg-primary/10 border-primary/30 text-primary-foreground';
+      case "correct":
+        return "bg-success/10 border-success/30 text-success-foreground";
+      case "close":
+        return "bg-warning/10 border-warning/30 text-warning-foreground";
+      case "system":
+        return "bg-primary/10 border-primary/30 text-primary-foreground";
       default:
-        return 'bg-background/10 border-border';
+        return "bg-background/10 border-border";
     }
   };
 
@@ -73,9 +78,13 @@ export const ChatArea = ({ messages, onSendMessage, isDrawing, canGuess }: ChatA
     <Card className="p-4 bg-game-surface border-primary/20 flex flex-col h-full">
       {/* Header */}
       <div className="text-center mb-4">
-        <h3 className="text-lg font-bold text-primary mb-1">ግምቶች (Guesses)</h3>
+        <h3 className="text-lg font-bold text-primary mb-1">ግምቶች</h3>
         <p className="text-sm text-muted-foreground">
-          {isDrawing ? "You're drawing!" : canGuess ? "Type your guess..." : "Waiting for next round"}
+          {isDrawing
+            ? "You're drawing!"
+            : canGuess
+            ? "Type your guess..."
+            : "Waiting for next round"}
         </p>
       </div>
 
@@ -84,39 +93,41 @@ export const ChatArea = ({ messages, onSendMessage, isDrawing, canGuess }: ChatA
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`p-3 rounded-lg border transition-all ${getMessageStyle(message)}`}
+            className={`p-3 rounded-lg border transition-all ${getMessageStyle(
+              message
+            )}`}
           >
             <div className="flex items-start gap-2">
               {getMessageIcon(message)}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-sm truncate">
+                  <span className="font-medium text-foreground text-sm truncate">
                     {message.playerName}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {formatTime(message.timestamp)}
                   </span>
                 </div>
-                
-                {message.type === 'correct' ? (
+
+                {message.type === "correct" ? (
                   <div className="text-sm font-medium text-success">
-                    🎉 {message.playerName} guessed it!!
+                    {message.playerName} በትክክል መልሰዋል
                   </div>
-                ) : message.type === 'close' ? (
+                ) : message.type === "close" ? (
                   <div className="text-sm">
-                    <span className="font-medium">"{message.message}"</span>
-                    <span className="text-warning"> is close!</span>
+                    <span className="text-warning font-medium">
+                      {message.message}
+                    </span>
+                    <span className="text-warning"> ለመልሱ ቀርበዋል!</span>
                   </div>
                 ) : (
-                  <div className="text-sm">
-                    {message.message}
-                  </div>
+                  <div className="text-sm">{message.message}</div>
                 )}
               </div>
             </div>
           </div>
         ))}
-        
+
         {messages.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -124,7 +135,7 @@ export const ChatArea = ({ messages, onSendMessage, isDrawing, canGuess }: ChatA
             <p className="text-sm">Start guessing to earn points!</p>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -134,11 +145,11 @@ export const ChatArea = ({ messages, onSendMessage, isDrawing, canGuess }: ChatA
           value={currentMessage}
           onChange={(e) => setCurrentMessage(e.target.value)}
           placeholder={
-            isDrawing 
-              ? "You can't guess while drawing..." 
-              : canGuess 
-                ? "Type your guess in Amharic or English..." 
-                : "Wait for your turn..."
+            isDrawing
+              ? "You can't guess while drawing..."
+              : canGuess
+              ? "Type your guess in Amharic or English..."
+              : "Wait for your turn..."
           }
           disabled={isDrawing || !canGuess}
           className="bg-background/20 border-primary/30 focus:border-primary"
@@ -157,7 +168,8 @@ export const ChatArea = ({ messages, onSendMessage, isDrawing, canGuess }: ChatA
       {/* Hint */}
       {canGuess && !isDrawing && (
         <div className="mt-2 text-xs text-center text-muted-foreground">
-          💡 Scoring: 100 points for first correct guess, -10 for each later guess
+          💡 Scoring: 100 points for first correct guess, -10 for each later
+          guess
         </div>
       )}
     </Card>

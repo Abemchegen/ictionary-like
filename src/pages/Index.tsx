@@ -4,29 +4,34 @@ import { GameRoom } from "@/components/GameRoom";
 
 const Index = () => {
   const [currentRoom, setCurrentRoom] = useState<string | null>(null);
+  const [currentRoomType, setCurrentRoomType] = useState<string | null>(null);
 
-  const handleCreateRoom = (roomId: string) => {
+  const handleCreateRoom = (roomId: string, type: string) => {
     setCurrentRoom(roomId);
+    setCurrentRoomType(type);
   };
 
-  const handleJoinRoom = (roomId: string) => {
+  const handleJoinRoom = (roomId: string, type: string) => {
     setCurrentRoom(roomId);
+    setCurrentRoomType(type);
   };
 
   const handleLeaveRoom = () => {
     setCurrentRoom(null);
+    setCurrentRoomType(null);
   };
 
   return (
     <>
       {!currentRoom ? (
-        <GameLobby 
+        <GameLobby
           onCreateRoom={handleCreateRoom}
           onJoinRoom={handleJoinRoom}
         />
       ) : (
-        <GameRoom 
+        <GameRoom
           roomId={currentRoom}
+          type={currentRoomType}
           onLeaveRoom={handleLeaveRoom}
         />
       )}
