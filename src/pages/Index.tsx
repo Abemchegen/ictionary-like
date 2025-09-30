@@ -1,13 +1,36 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { GameLobby } from "@/components/GameLobby";
+import { GameRoom } from "@/components/GameRoom";
 
 const Index = () => {
+  const [currentRoom, setCurrentRoom] = useState<string | null>(null);
+
+  const handleCreateRoom = (roomId: string) => {
+    setCurrentRoom(roomId);
+  };
+
+  const handleJoinRoom = (roomId: string) => {
+    setCurrentRoom(roomId);
+  };
+
+  const handleLeaveRoom = () => {
+    setCurrentRoom(null);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <>
+      {!currentRoom ? (
+        <GameLobby 
+          onCreateRoom={handleCreateRoom}
+          onJoinRoom={handleJoinRoom}
+        />
+      ) : (
+        <GameRoom 
+          roomId={currentRoom}
+          onLeaveRoom={handleLeaveRoom}
+        />
+      )}
+    </>
   );
 };
 

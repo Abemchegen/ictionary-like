@@ -19,13 +19,32 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        
+        // Game Colors
+        "game-surface": "hsl(var(--game-surface))",
+        "game-surface-foreground": "hsl(var(--game-surface-foreground))",
+        
+        // Ethiopian Flag Colors
+        "ethiopia-green": "hsl(var(--ethiopia-green))",
+        "ethiopia-yellow": "hsl(var(--ethiopia-yellow))",
+        "ethiopia-red": "hsl(var(--ethiopia-red))",
+        
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glow: "hsl(var(--primary-glow))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -57,6 +76,20 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-accent": "var(--gradient-accent)",
+        "gradient-game": "var(--gradient-game)",
+      },
+      boxShadow: {
+        "game": "var(--shadow-game)",
+        "glow": "var(--shadow-glow)",
+        "accent": "var(--shadow-accent)",
+      },
+      transitionTimingFunction: {
+        "game": "var(--transition-game)",
+        "bounce": "var(--transition-bounce)",
       },
       borderRadius: {
         lg: "var(--radius)",
