@@ -2,14 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import {
-  Users,
-  Plus,
-  ArrowRight,
-  Gamepad2,
-  Paintbrush,
-  PaintRoller,
-} from "lucide-react";
+import { Users, Plus, ArrowRight } from "lucide-react";
 
 interface GameLobbyProps {
   onCreateRoom: (roomId: string, type: string) => void;

@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Crown, User, Palette } from "lucide-react";
+import { User, ArrowLeft, Clock, Trophy } from "lucide-react";
 
 export interface Player {
   id: string;
@@ -14,21 +13,49 @@ interface PlayerListProps {
   players: Player[];
   currentRound: number;
   totalRounds: number;
+  onLeaveRoom: () => void;
+  timeLeft: number;
 }
 
 export const PlayerList = ({
   players,
   currentRound,
   totalRounds,
+  onLeaveRoom,
+  timeLeft,
 }: PlayerListProps) => {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
-  const leader = sortedPlayers[0];
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   return (
     <Card className="p-4 bg-game-surface border-primary/20">
-      {/* Header */}
-      <div className="text-center mb-4">
-        <h3 className="text-lg font-bold text-primary mb-2">ተጫዋቾች</h3>
+      {/* Game Status */}
+      <div className="flex items-center gap-4 mb-10">
+        <div
+          className="flex items-center gap-2 text-sm mr-3 hover:cursor-pointer"
+          onClick={() => {
+            onLeaveRoom();
+          }}
+        >
+          <ArrowLeft className="w-5" /> <span>ተመለስ</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm mr-3">
+          <Clock className="w-4 h-4 text-accent" />
+          <span className="font-mono text-lg text-accent">
+            {formatTime(timeLeft)}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 text-sm mr-3">
+          <Trophy className="w-4 h-4 text-ethiopia-yellow" />
+          <p>
+            {currentRound}/{totalRounds}
+          </p>
+        </div>
       </div>
 
       {/* Players List */}

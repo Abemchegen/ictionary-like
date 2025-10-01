@@ -6,9 +6,10 @@ import { Pen, Palette, RotateCcw, Eraser, PaintBucket } from "lucide-react";
 
 export interface DrawingCanvasProps {
   isDrawing: boolean;
+  word: String;
 }
 
-export const DrawingCanvas = ({ isDrawing }: DrawingCanvasProps) => {
+export const DrawingCanvas = ({ isDrawing, word }: DrawingCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(true);
   const [currentTool, setCurrentTool] = useState<"pen" | "eraser" | "fill">(
@@ -228,7 +229,21 @@ export const DrawingCanvas = ({ isDrawing }: DrawingCanvasProps) => {
   };
 
   return (
-    <Card className="p-4 bg-game-surface border-primary/20">
+    <Card className="p-2 bg-game-surface border-primary/20">
+      <div className="flex mb-2 justify-center items-center w-full">
+        {isDrawing && word && (
+          <p className="text-3xl font-bold text-primary">{word}</p>
+        )}
+        {!isDrawing && word && (
+          <div className="text-center p-3 bg-primary/10 rounded-lg border border-primary/30">
+            <p className="text-3xl font-bold text-primary">
+              {Array.from(word)
+                .map(() => "_")
+                .join(" ")}
+            </p>
+          </div>
+        )}
+      </div>
       {/* Canvas */}
       <div className="flex justify-center">
         <canvas
@@ -415,8 +430,6 @@ export const DrawingCanvas = ({ isDrawing }: DrawingCanvasProps) => {
           <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
-
-      {/* Color Palette */}
     </Card>
   );
 };

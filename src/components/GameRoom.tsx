@@ -4,7 +4,7 @@ import { PlayerList, Player } from "./PlayerList";
 import { ChatArea, ChatMessage } from "./ChatArea";
 import { Button } from "@/components/ui/button";
 
-import { Copy, Clock, Trophy, ArrowLeft } from "lucide-react";
+import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface GameRoomProps {
@@ -75,64 +75,15 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
       description: "Share this code with friends to invite them.",
     });
   };
-
+  const handleStartGame = () => {};
   const handleSendMessage = (message: string) => {
     console.log("Sending message:", message);
     // In real app, this would send to backend
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="relative flex bg-game-surface p-1 justify-between items-center">
-          {/* Game Status */}
-          <div className="flex items-center gap-4">
-            <div
-              className="flex items-center gap-2 text-sm mr-5 hover:cursor-pointer"
-              onClick={() => {
-                onLeaveRoom();
-              }}
-            >
-              <ArrowLeft className="w-5" /> <span>ተመለስ</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm mr-5">
-              <Clock className="w-4 h-4 text-accent" />
-              <span className="font-mono text-lg text-accent">
-                {formatTime(gameState.timeLeft)}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm mr-5">
-              <Trophy className="w-4 h-4 text-ethiopia-yellow" />
-              <span>
-                {gameState.round}/{gameState.totalRounds} ዙር
-              </span>
-            </div>
-          </div>
-          {/* Drawing Word Display - absolutely centered */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center pointer-events-none w-full">
-            {isCurrentPlayerDrawing && gameState.currentWord && (
-              <p className="text-3xl font-bold text-primary">
-                {gameState.currentWord}
-              </p>
-            )}
-            {!isCurrentPlayerDrawing && gameState.currentWord && (
-              <div className="text-center p-3 bg-primary/10 rounded-lg border border-primary/30">
-                <p className="text-3xl font-bold text-primary">
-                  {Array.from(gameState.currentWord)
-                    .map(() => "_")
-                    .join(" ")}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
         {/* Drawing Word Display */}
 
         {/* Game Layout */}
@@ -141,6 +92,8 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
           <div className="">
             <PlayerList
               players={players}
+              timeLeft={gameState.timeLeft}
+              onLeaveRoom={onLeaveRoom}
               currentRound={gameState.round}
               totalRounds={gameState.totalRounds}
             />
@@ -148,7 +101,10 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
 
           {/* Main Canvas Area */}
           <div className="">
-            <DrawingCanvas isDrawing={isCurrentPlayerDrawing} />
+            <DrawingCanvas
+              isDrawing={isCurrentPlayerDrawing}
+              word={gameState.currentWord}
+            />
           </div>
 
           {/* Right Sidebar - Chat */}
@@ -166,7 +122,7 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
       {type == "private" && (
         <div className="flex items-center justify-center gap-4">
           <div className="flex items-center gap-2">
-            <Button variant="game" size="lg" onClick={handleCopyRoomId}>
+            <Button variant="game" size="lg" onClick={handleStartGame}>
               ጨዋታውን ይጀምሩ
             </Button>
             <Button variant="outline" size="lg" onClick={handleCopyRoomId}>
