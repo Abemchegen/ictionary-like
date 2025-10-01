@@ -87,6 +87,31 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
     // In real app, this would send to backend
   };
 
+  const handleLikeDrawing = () => {
+    toast({
+      title: "Drawing liked! 👍",
+      description: "You liked this drawing",
+    });
+    // In real app, would send like to backend and show in chat
+    console.log("Player liked the drawing");
+  };
+
+  const handleDislikeDrawing = () => {
+    toast({
+      title: "Feedback sent",
+      description: "You disliked this drawing",
+    });
+    console.log("Player disliked the drawing");
+  };
+
+  const handlePlayerThumbsUp = (playerId: string, playerName: string) => {
+    toast({
+      title: `Thumbs up! 👍`,
+      description: `You gave ${playerName} a thumbs up!`,
+    });
+    console.log(`Thumbs up given to player: ${playerName}`);
+  };
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto">
@@ -117,6 +142,7 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
               onLeaveRoom={onLeaveRoom}
               currentRound={gameState.round}
               totalRounds={gameState.totalRounds}
+              onPlayerThumbsUp={handlePlayerThumbsUp}
             />
           </div>
 
@@ -125,6 +151,8 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
             <DrawingCanvas
               isDrawing={isCurrentPlayerDrawing}
               word={gameState.currentWord}
+              onLike={handleLikeDrawing}
+              onDislike={handleDislikeDrawing}
             />
           </div>
 

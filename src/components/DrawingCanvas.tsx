@@ -2,14 +2,16 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Pen, Palette, RotateCcw, Eraser, PaintBucket } from "lucide-react";
+import { Pen, Palette, RotateCcw, Eraser, PaintBucket, ThumbsUp, ThumbsDown } from "lucide-react";
 
 export interface DrawingCanvasProps {
   isDrawing: boolean;
   word: String;
+  onLike?: () => void;
+  onDislike?: () => void;
 }
 
-export const DrawingCanvas = ({ isDrawing, word }: DrawingCanvasProps) => {
+export const DrawingCanvas = ({ isDrawing, word, onLike, onDislike }: DrawingCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(true);
   const [currentTool, setCurrentTool] = useState<"pen" | "eraser" | "fill">(
@@ -258,6 +260,30 @@ export const DrawingCanvas = ({ isDrawing, word }: DrawingCanvasProps) => {
           style={{ maxWidth: "100%", height: "auto" }}
         />
       </div>
+
+      {/* Like/Dislike Buttons */}
+      {!isDrawing && (
+        <div className="flex justify-center gap-3 mt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onLike}
+            className="gap-2 hover:bg-success/20 hover:border-success hover:text-success"
+          >
+            <ThumbsUp className="w-4 h-4" />
+            Like
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDislike}
+            className="gap-2 hover:bg-destructive/20 hover:border-destructive hover:text-destructive"
+          >
+            <ThumbsDown className="w-4 h-4" />
+            Dislike
+          </Button>
+        </div>
+      )}
 
       {/* Tool Bar */}
       <div className="flex items-center gap-4 mb-4 p-3 bg-background/10 rounded-lg">

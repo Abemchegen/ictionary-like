@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { User, ArrowLeft, Clock, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { User, ArrowLeft, Clock, Trophy, ThumbsUp } from "lucide-react";
 
 export interface Player {
   id: string;
@@ -15,6 +16,7 @@ interface PlayerListProps {
   totalRounds: number;
   onLeaveRoom: () => void;
   timeLeft: number;
+  onPlayerThumbsUp?: (playerId: string, playerName: string) => void;
 }
 
 export const PlayerList = ({
@@ -23,6 +25,7 @@ export const PlayerList = ({
   totalRounds,
   onLeaveRoom,
   timeLeft,
+  onPlayerThumbsUp,
 }: PlayerListProps) => {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
   const formatTime = (seconds: number) => {
@@ -95,15 +98,27 @@ export const PlayerList = ({
                 {player.isDrawing && <p>🎨</p>}
               </div>
 
-              {/* Score */}
-              <div
-                className={`font-bold text-lg ${
-                  index === 0 && player.score > 0
-                    ? "text-ethiopia-yellow"
-                    : "text-primary"
-                }`}
-              >
-                {player.score}
+              <div className="flex items-center gap-3">
+                {/* Thumbs Up Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onPlayerThumbsUp?.(player.id, player.name)}
+                  className="h-8 px-2 hover:bg-primary/20 hover:text-primary"
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                </Button>
+
+                {/* Score */}
+                <div
+                  className={`font-bold text-lg ${
+                    index === 0 && player.score > 0
+                      ? "text-accent"
+                      : "text-primary"
+                  }`}
+                >
+                  {player.score}
+                </div>
               </div>
             </div>
           </div>
