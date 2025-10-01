@@ -21,7 +21,7 @@
 
     /* Modern Violet Theme */
     --violet-primary: 262 83% 58%;
-    --violet-glow: 262 83% 68%;
+    --violet-glow: 262 70% 62%;
     --cyan-accent: 189 94% 43%;
 
     /* Primary Game Colors */
@@ -72,9 +72,9 @@
     );
 
     /* Game Shadows & Glows */
-    --shadow-game: 0 10px 30px -5px hsl(var(--violet-primary) / 0.3);
-    --shadow-glow: 0 0 30px hsl(var(--primary-glow) / 0.5);
-    --shadow-accent: 0 5px 20px hsl(var(--cyan-accent) / 0.3);
+    --shadow-game: 0 10px 30px -5px hsl(var(--violet-primary) / 0.2);
+    --shadow-glow: 0 0 20px hsl(var(--primary-glow) / 0.25);
+    --shadow-accent: 0 5px 20px hsl(var(--cyan-accent) / 0.2);
 
     /* Animations */
     --transition-game: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
