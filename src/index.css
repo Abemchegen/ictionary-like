@@ -19,32 +19,32 @@
     --popover: 220 23% 8%;
     --popover-foreground: 60 30% 96%;
 
-    /* Ethiopian Flag Inspired Colors */
-    --ethiopia-green: 142 76% 36%;
-    --ethiopia-yellow: 45 93% 58%;
-    --ethiopia-red: 0 84% 55%;
+    /* Modern Violet Theme */
+    --violet-primary: 262 83% 58%;
+    --violet-glow: 262 83% 68%;
+    --cyan-accent: 189 94% 43%;
 
     /* Primary Game Colors */
-    --primary: 142 76% 36%;
-    --primary-foreground: 60 30% 96%;
-    --primary-glow: 142 76% 45%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 262 83% 68%;
 
     /* Secondary & Accent */
     --secondary: 220 20% 14%;
     --secondary-foreground: 60 15% 85%;
 
-    --accent: 45 93% 58%;
+    --accent: 189 94% 43%;
     --accent-foreground: 220 26% 6%;
 
     /* Game Status Colors */
-    --success: 142 76% 36%;
-    --success-foreground: 60 30% 96%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 45 93% 58%;
-    --warning-foreground: 220 26% 6%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 55%;
-    --destructive-foreground: 60 30% 96%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
     /* Interface Elements */
     --muted: 220 20% 14%;
@@ -57,13 +57,13 @@
     /* Game Gradients */
     --gradient-primary: linear-gradient(
       135deg,
-      hsl(var(--ethiopia-green)),
+      hsl(var(--violet-primary)),
       hsl(var(--primary-glow))
     );
     --gradient-accent: linear-gradient(
       135deg,
-      hsl(var(--ethiopia-yellow)),
-      hsl(var(--ethiopia-red))
+      hsl(var(--cyan-accent)),
+      hsl(var(--violet-primary))
     );
     --gradient-game: linear-gradient(
       180deg,
@@ -72,9 +72,9 @@
     );
 
     /* Game Shadows & Glows */
-    --shadow-game: 0 10px 30px -5px hsl(var(--ethiopia-green) / 0.3);
-    --shadow-glow: 0 0 30px hsl(var(--primary-glow) / 0.4);
-    --shadow-accent: 0 5px 20px hsl(var(--ethiopia-yellow) / 0.3);
+    --shadow-game: 0 10px 30px -5px hsl(var(--violet-primary) / 0.3);
+    --shadow-glow: 0 0 30px hsl(var(--primary-glow) / 0.5);
+    --shadow-accent: 0 5px 20px hsl(var(--cyan-accent) / 0.3);
 
     /* Animations */
     --transition-game: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

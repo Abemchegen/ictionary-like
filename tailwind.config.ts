@@ -24,10 +24,10 @@ export default {
         "game-surface": "hsl(var(--game-surface))",
         "game-surface-foreground": "hsl(var(--game-surface-foreground))",
         
-        // Ethiopian Flag Colors
-        "ethiopia-green": "hsl(var(--ethiopia-green))",
-        "ethiopia-yellow": "hsl(var(--ethiopia-yellow))",
-        "ethiopia-red": "hsl(var(--ethiopia-red))",
+        // Violet Theme Colors
+        "violet-primary": "hsl(var(--violet-primary))",
+        "violet-glow": "hsl(var(--violet-glow))",
+        "cyan-accent": "hsl(var(--cyan-accent))",
         
         primary: {
           DEFAULT: "hsl(var(--primary))",
