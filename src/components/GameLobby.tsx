@@ -1,18 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Users, Plus, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-interface GameLobbyProps {
-  onCreateRoom: (roomId: string, type: string) => void;
-  onJoinRoom: (roomId: string, type: string) => void;
-}
-
-export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
-  const [roomId, setRoomId] = useState("");
+export const GameLobby = () => {
   const [playerName, setPlayerName] = useState("");
   const [error, setError] = useState<string>("");
+  const navigate = useNavigate();
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [joinRoomId, setJoinRoomId] = useState<string | "">("");
+  const [currentRoomType, setCurrentRoomType] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (roomId && currentRoomType) {
+      if (currentRoomType == "private") {
+        navigate(`/gameroom?type=private&id=${roomId}`);
+      } else {
+        navigate(`/gameroom?type=public&id=${roomId}`);
+      }
+    }
+  }, [roomId, currentRoomType]);
 
   const handleCreateRoom = () => {
     if (!playerName.trim()) {
@@ -21,7 +30,8 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
     }
     setError("");
     const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    onCreateRoom(newRoomId, "private");
+    setRoomId(newRoomId);
+    setCurrentRoomType("private");
   };
 
   const handleJoinCommonRoom = () => {
@@ -30,7 +40,8 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
       return;
     }
     setError("");
-    onJoinRoom("COMMON", "Common");
+    setRoomId("COMMON");
+    setCurrentRoomType("Common");
   };
 
   const handleJoinPrivateRoom = () => {
@@ -38,28 +49,29 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
       setError("Please enter your name");
       return;
     }
-    if (!roomId.trim()) {
+    if (!joinRoomId.trim()) {
       setError("Please enter room code");
       return;
     }
     setError("");
-    onJoinRoom(roomId.toUpperCase(), "private");
+    setRoomId(joinRoomId.trim());
+    setCurrentRoomType("private");
   };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12"></div>
+
+        {/* Player Name Input */}
+        <Card className="p-6 mb-8 bg-gradient-game border-primary/20">
+          {" "}
           <div className="flex items-center justify-center gap-3 mb-6">
             <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               Draw, Guess, Win!
             </h1>
           </div>
-        </div>
-
-        {/* Player Name Input */}
-        <Card className="p-6 mb-8 bg-gradient-game border-primary/20">
           <div className="max-w-md mx-auto">
             <label className="block text-sm font-medium mb-2">Your Name</label>
             <Input
@@ -69,7 +81,7 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
                 setPlayerName(e.target.value);
                 if (error) setError("");
               }}
-              className="text-center text-lg bg-game-surface border-primary/30"
+              className="text-center text-lg bg-game-surface  border-primary/30"
             />
             {error && (
               <div className="text-red-500 text-sm mt-2 text-center">
@@ -88,9 +100,7 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
                 <Plus className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold mb-2">
-                  Create Private Room
-                </h3>
+                <h3 className="text-2xl font-bold mb-2">Create Private Room</h3>
                 <p className="text-muted-foreground">
                   Create a private room and invite friends
                 </p>
@@ -108,10 +118,10 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
           </Card>
 
           {/* Join Common Room */}
-          <Card className="p-8 bg-gradient-game border-accent/20 hover:border-accent/50 transition-game">
+          <Card className="p-8 bg-gradient-game border-primary/20 hover:border-primary/50 transition-game">
             <div className="text-center space-y-6">
-              <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto">
-                <Users className="w-8 h-8 text-accent" />
+              <div className="w-16 h-16 bg-primary/20  rounded-full flex items-center justify-center mx-auto">
+                <Users className="w-8 h-8 text-primary" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold mb-2">Join Public Room</h3>
@@ -140,13 +150,13 @@ export const GameLobby = ({ onCreateRoom, onJoinRoom }: GameLobbyProps) => {
               <Input
                 placeholder="Enter room code"
                 value={roomId}
-                onChange={(e) => setRoomId(e.target.value.toUpperCase())}
-                className="bg-background border-primary/30"
+                onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
+                className="text-center bg-background border-primary/30"
                 maxLength={6}
               />
               <Button
                 onClick={handleJoinPrivateRoom}
-                disabled={!playerName.trim() || !roomId.trim()}
+                disabled={!joinRoomId.trim()}
                 variant="outline"
                 size="icon"
               >

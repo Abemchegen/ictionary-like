@@ -2,19 +2,19 @@ import { useState } from "react";
 import { DrawingCanvas } from "./DrawingCanvas";
 import { PlayerList, Player } from "./PlayerList";
 import { ChatArea, ChatMessage } from "./ChatArea";
-import { Button } from "@/components/ui/button";
 
-import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "./ui/button";
+import { Copy } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-interface GameRoomProps {
-  roomId: string;
-  type: String;
-  onLeaveRoom: () => void;
-}
-
-export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
+export const GameRoom = () => {
   const { toast } = useToast();
+
+  const [searchParams] = useSearchParams();
+
+  const type = searchParams.get("type");
+  const roomid = searchParams.get("id");
 
   // Mock game state - in real app this would come from backend
   const [gameState, setGameState] = useState({
@@ -23,7 +23,7 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
     timeLeft: 75,
     round: 1,
     totalRounds: 3,
-    isPlaying: true,
+    isPlaying: false,
   });
 
   const [players] = useState<Player[]>([
@@ -59,17 +59,50 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
       id: "3",
       playerId: "system",
       playerName: "System",
-      message: "መሪያም guessed it!!",
+      message: "መልሰዋል",
+      timestamp: new Date(Date.now() - 10000),
+      type: "correct",
+    },
+    {
+      id: "4",
+      playerId: "system",
+      playerName: "System",
+      message: "መልሰዋል",
+      timestamp: new Date(Date.now() - 10000),
+      type: "correct",
+    },
+    {
+      id: "5",
+      playerId: "girly",
+      playerName: "sds",
+      message: "water",
+      timestamp: new Date(Date.now() - 10000),
+      type: "guess",
+    },
+    {
+      id: "6",
+      playerId: "sddsds",
+      playerName: "sdsdsd",
+      message: "rain",
+      timestamp: new Date(Date.now() - 10000),
+      type: "guess",
+    },
+    {
+      id: "7",
+      playerId: "system",
+      playerName: "System",
+      message: "መልሰዋል",
       timestamp: new Date(Date.now() - 10000),
       type: "correct",
     },
   ]);
-
+  const navigate = useNavigate();
   const isCurrentPlayerDrawing = gameState.currentPlayer === "player1"; // Assume current user is player1
-  const canGuess = gameState.isPlaying && !isCurrentPlayerDrawing;
-
+  const handleLeaveRoom = () => {
+    navigate("/");
+  };
   const handleCopyRoomId = () => {
-    navigator.clipboard.writeText(roomId);
+    navigator.clipboard.writeText(roomid);
     toast({
       title: "Room code copied!",
       description: "Share this code with friends to invite them.",
@@ -104,50 +137,46 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
     console.log("Player disliked the drawing");
   };
 
-  const handlePlayerThumbsUp = (playerId: string, playerName: string) => {
-    toast({
-      title: `Thumbs up! 👍`,
-      description: `You gave ${playerName} a thumbs up!`,
-    });
-    console.log(`Thumbs up given to player: ${playerName}`);
-  };
-
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen w-full h-full bg-background py-3 px-1">
+      <div className="w-full mx-auto">
         {/* Private Room Controls */}
-        {type === "private" && (
-          <div className="mb-6 flex items-center justify-center gap-4 p-4 bg-card rounded-lg border border-border">
-            <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-md">
-              <span className="text-sm text-muted-foreground">Room Code:</span>
-              <span className="text-lg font-bold text-primary">{roomId}</span>
+        {type === "private" && !gameState.isPlaying && (
+          <div className="mb-2 flex items-center w-full justify-center ">
+            <div className="flex p-2 space-x-3 w-1/2 items-center justify-center">
+              <Button
+                variant="game"
+                className="w-2/4"
+                onClick={handleStartGame}
+              >
+                Start Game
+              </Button>
+              <Button
+                variant="outline"
+                className="w-2/4"
+                onClick={handleCopyRoomId}
+              >
+                <Copy className="w-4 h-4 mr-1" />
+                Share
+              </Button>
             </div>
-            <Button variant="game" size="lg" onClick={handleStartGame}>
-              Start Game
-            </Button>
-            <Button variant="outline" size="lg" onClick={handleCopyRoomId}>
-              <Copy className="w-4 h-4 mr-2" />
-              Share with Friends
-            </Button>
           </div>
         )}
-
         {/* Game Layout */}
-        <div className="flex">
+        <div className="flex max-h-screen">
           {/* Left Sidebar - Players */}
-          <div className="">
+          <div className="min-w-48 mr-2">
             <PlayerList
               players={players}
               timeLeft={gameState.timeLeft}
-              onLeaveRoom={onLeaveRoom}
+              onLeaveRoom={handleLeaveRoom}
               currentRound={gameState.round}
               totalRounds={gameState.totalRounds}
-              onPlayerThumbsUp={handlePlayerThumbsUp}
             />
           </div>
 
           {/* Main Canvas Area */}
-          <div className="">
+          <div className="flex-1 h-full mr-2">
             <DrawingCanvas
               isDrawing={isCurrentPlayerDrawing}
               word={gameState.currentWord}
@@ -162,7 +191,7 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
               messages={messages}
               onSendMessage={handleSendMessage}
               isDrawing={isCurrentPlayerDrawing}
-              canGuess={canGuess}
+              canGuess={gameState.isPlaying}
             />
           </div>
         </div>

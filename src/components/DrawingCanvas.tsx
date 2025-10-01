@@ -2,7 +2,15 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Pen, Palette, RotateCcw, Eraser, PaintBucket, ThumbsUp, ThumbsDown } from "lucide-react";
+import {
+  Pen,
+  Palette,
+  RotateCcw,
+  Eraser,
+  PaintBucket,
+  ThumbsUp,
+  ThumbsDown,
+} from "lucide-react";
 
 export interface DrawingCanvasProps {
   isDrawing: boolean;
@@ -11,7 +19,14 @@ export interface DrawingCanvasProps {
   onDislike?: () => void;
 }
 
-export const DrawingCanvas = ({ isDrawing, word, onLike, onDislike }: DrawingCanvasProps) => {
+export const DrawingCanvas = ({
+  isDrawing,
+  word,
+  onLike,
+  onDislike,
+}: DrawingCanvasProps) => {
+  // Track previous eraser position
+  const prevEraserPos = useRef<{ x: number; y: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(true);
   const [currentTool, setCurrentTool] = useState<"pen" | "eraser" | "fill">(
@@ -87,12 +102,19 @@ export const DrawingCanvas = ({ isDrawing, word, onLike, onDislike }: DrawingCan
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    canvas.width = 800;
-    canvas.height = 500;
-    ctx.fillStyle = "#FFFFFF";
+    canvas.width = 900;
+    canvas.height = 600;
+    const parent = canvas.parentElement;
+    if (parent) {
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight - 90;
+    }
+    ctx.fillStyle = "#c0c0c0";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
+
+    console.log(canvas.height, canvas.width);
   }, []);
 
   // Update drawing properties when color or brush size changes (for pen only)
@@ -202,10 +224,29 @@ export const DrawingCanvas = ({ isDrawing, word, onLike, onDislike }: DrawingCan
 
     if (currentTool === "eraser") {
       ctx.save();
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.beginPath();
-      ctx.arc(x, y, eraserSize, 0, 2 * Math.PI);
-      ctx.fill();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "#c0c0c0"; // match canvas background
+      // Interpolate between previous and current position
+      const prev = prevEraserPos.current;
+      if (prev) {
+        const dx = x - prev.x;
+        const dy = y - prev.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const steps = Math.max(1, Math.floor(dist / (eraserSize * 0.5)));
+        for (let i = 1; i <= steps; i++) {
+          const t = i / steps;
+          const ix = prev.x + dx * t;
+          const iy = prev.y + dy * t;
+          ctx.beginPath();
+          ctx.arc(ix, iy, eraserSize, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      } else {
+        ctx.beginPath();
+        ctx.arc(x, y, eraserSize, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+      prevEraserPos.current = { x, y };
       ctx.restore();
     } else {
       ctx.strokeStyle = currentColor;
@@ -217,6 +258,7 @@ export const DrawingCanvas = ({ isDrawing, word, onLike, onDislike }: DrawingCan
 
   const stopDrawing = () => {
     setIsMouseDown(false);
+    prevEraserPos.current = null;
   };
 
   const clearCanvas = () => {
@@ -226,31 +268,31 @@ export const DrawingCanvas = ({ isDrawing, word, onLike, onDislike }: DrawingCan
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = "#c0c0c0";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   };
 
   return (
-    <Card className="p-2 bg-game-surface border-primary/20">
-      <div className="flex mb-2 justify-center items-center w-full">
-        {isDrawing && word && (
-          <p className="text-3xl font-bold text-primary">{word}</p>
-        )}
-        {!isDrawing && word && (
-          <div className="text-center p-3 bg-primary/10 rounded-lg border border-primary/30">
+    <Card className="p-2 bg-game-surface h-full border-primary/20">
+      <div className="flex w-full  mb-2">
+        <div className="flex justify-center items-center w-full">
+          {isDrawing && word && (
+            <p className="text-3xl font-bold text-primary">{word}</p>
+          )}
+          {!isDrawing && word && (
             <p className="text-3xl font-bold text-primary">
               {Array.from(word)
                 .map(() => "_")
                 .join(" ")}
             </p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       {/* Canvas */}
-      <div className="flex justify-center">
+      <div className="relative flex justify-center">
         <canvas
           ref={canvasRef}
-          className={`border-2 border-border rounded-lg bg-white ${
+          className={`border-2 border-border rounded-lg ${
             isDrawing ? "cursor-crosshair" : "cursor-not-allowed"
           }`}
           onMouseDown={startDrawing}
@@ -259,31 +301,21 @@ export const DrawingCanvas = ({ isDrawing, word, onLike, onDislike }: DrawingCan
           onMouseLeave={stopDrawing}
           style={{ maxWidth: "100%", height: "auto" }}
         />
-      </div>
+        {/* Like/Dislike Buttons Overlay */}
+        {!isDrawing && (
+          <div className="absolute top-3 right-3 flex gap-3 z-20">
+            <ThumbsUp
+              onClick={onLike}
+              className="w-6 h-6 text-success hover:cursor-pointer"
+            />
 
-      {/* Like/Dislike Buttons */}
-      {!isDrawing && (
-        <div className="flex justify-center gap-3 mt-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onLike}
-            className="gap-2 hover:bg-success/20 hover:border-success hover:text-success"
-          >
-            <ThumbsUp className="w-4 h-4" />
-            Like
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDislike}
-            className="gap-2 hover:bg-destructive/20 hover:border-destructive hover:text-destructive"
-          >
-            <ThumbsDown className="w-4 h-4" />
-            Dislike
-          </Button>
-        </div>
-      )}
+            <ThumbsDown
+              onClick={onDislike}
+              className="w-6 h-6 text-destructive hover:border-destructive "
+            />
+          </div>
+        )}
+      </div>
 
       {/* Tool Bar */}
       <div className="flex items-center gap-4 mb-4 p-3 bg-background/10 rounded-lg">

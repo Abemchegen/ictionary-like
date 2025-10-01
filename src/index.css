@@ -2,18 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ethiopian Scribble Game Design System */
-
 @layer base {
   :root {
     /* Gaming Dark Theme */
-    --background: 240 10% 15%;
+    --background: 190, 9%, 18%;
     --foreground: 60 30% 96%;
 
     /* Game Cards & Surfaces */
     --card: 220 23% 8%;
     --card-foreground: 60 30% 96%;
-    --game-surface: 220 20% 10%;
+    --game-surface: 220 15% 14%;
     --game-surface-foreground: 60 15% 90%;
 
     --popover: 220 23% 8%;
@@ -33,7 +31,7 @@
     --secondary: 220 20% 14%;
     --secondary-foreground: 60 15% 85%;
 
-    --accent: 189 94% 43%;
+    --accent: 51 100% 50%;
     --accent-foreground: 220 26% 6%;
 
     /* Game Status Colors */
@@ -52,7 +50,7 @@
 
     --border: 220 20% 18%;
     --input: 220 20% 12%;
-    --ring: 142 76% 36%;
+    --ring: 262 83% 58%;
 
     /* Game Gradients */
     --gradient-primary: linear-gradient(
@@ -146,4 +144,9 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+/* Custom scrollbar for chat area */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #5a5555 #2e2e31; /* thumb color, track color */
 }

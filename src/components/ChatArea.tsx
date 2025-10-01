@@ -46,21 +46,6 @@ export const ChatArea = ({
     setCurrentMessage("");
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
-
-  const getMessageIcon = (message: ChatMessage) => {
-    switch (message.type) {
-      case "correct":
-        return <CheckCircle className="w-4 h-4 text-success" />;
-      case "close":
-        return <AlertCircle className="w-4 h-4 text-warning" />;
-      default:
-        return <MessageCircle className="w-4 h-4 text-muted-foreground" />;
-    }
-  };
-
   const getMessageStyle = (message: ChatMessage) => {
     switch (message.type) {
       case "correct":
@@ -75,53 +60,42 @@ export const ChatArea = ({
   };
 
   return (
-    <Card className="p-4 bg-game-surface border-primary/20 flex flex-col h-full">
-      {/* Header */}
-      <div className="text-center mb-4">
-        <h3 className="text-lg font-bold text-primary mb-1">ግምቶች</h3>
-        <p className="text-sm text-muted-foreground">
-          {isDrawing
-            ? "You're drawing!"
-            : canGuess
-            ? "Type your guess..."
-            : "Waiting for next round"}
-        </p>
-      </div>
-
+    <Card className="p-1 bg-game-surface border-primary/20 flex flex-col h-full">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto space-y-2 mb-4 max-h-96">
+      <div className="flex-1 p-4 overflow-y-scroll custom-scrollbar space-y-2 mb-4">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`p-3 rounded-lg border transition-all ${getMessageStyle(
+            className={`p-3 rounded-lg border  transition-all ${getMessageStyle(
               message
             )}`}
           >
             <div className="flex items-start gap-2">
-              {getMessageIcon(message)}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-foreground text-sm truncate">
-                    {message.playerName}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatTime(message.timestamp)}
-                  </span>
-                </div>
-
                 {message.type === "correct" ? (
                   <div className="text-sm font-medium text-success">
-                    {message.playerName} በትክክል መልሰዋል
+                    <span className="text-primary">
+                      {message.playerName} :{" "}
+                    </span>{" "}
+                    መልሰዋል
                   </div>
                 ) : message.type === "close" ? (
                   <div className="text-sm">
+                    <span className="text-primary">
+                      {message.playerName} :{" "}
+                    </span>
                     <span className="text-warning font-medium">
                       {message.message}
                     </span>
-                    <span className="text-warning"> ለመልሱ ቀርበዋል!</span>
+                    <span className="text-warning"> ቀርበዋል!</span>
                   </div>
                 ) : (
-                  <div className="text-sm">{message.message}</div>
+                  <div className="text-sm">
+                    <span className="text-primary">
+                      {message.playerName} :{" "}
+                    </span>
+                    <span> {message.message}</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -149,7 +123,7 @@ export const ChatArea = ({
               ? "You can't guess while drawing..."
               : canGuess
               ? "Type your guess in Amharic or English..."
-              : "Wait for your turn..."
+              : "Game not started yet"
           }
           disabled={isDrawing || !canGuess}
           className="bg-background/20 border-primary/30 focus:border-primary"
@@ -164,14 +138,6 @@ export const ChatArea = ({
           <Send className="w-4 h-4" />
         </Button>
       </form>
-
-      {/* Hint */}
-      {canGuess && !isDrawing && (
-        <div className="mt-2 text-xs text-center text-muted-foreground">
-          💡 Scoring: 100 points for first correct guess, -10 for each later
-          guess
-        </div>
-      )}
     </Card>
   );
 };
