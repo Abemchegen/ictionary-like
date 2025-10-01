@@ -75,7 +75,13 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
       description: "Share this code with friends to invite them.",
     });
   };
-  const handleStartGame = () => {};
+  const handleStartGame = () => {
+    setGameState({ ...gameState, isPlaying: true });
+    toast({
+      title: "Game started!",
+      description: "Let the drawing begin!",
+    });
+  };
   const handleSendMessage = (message: string) => {
     console.log("Sending message:", message);
     // In real app, this would send to backend
@@ -84,7 +90,22 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto">
-        {/* Drawing Word Display */}
+        {/* Private Room Controls */}
+        {type === "private" && (
+          <div className="mb-6 flex items-center justify-center gap-4 p-4 bg-card rounded-lg border border-border">
+            <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-md">
+              <span className="text-sm text-muted-foreground">Room Code:</span>
+              <span className="text-lg font-bold text-primary">{roomId}</span>
+            </div>
+            <Button variant="game" size="lg" onClick={handleStartGame}>
+              Start Game
+            </Button>
+            <Button variant="outline" size="lg" onClick={handleCopyRoomId}>
+              <Copy className="w-4 h-4 mr-2" />
+              Share with Friends
+            </Button>
+          </div>
+        )}
 
         {/* Game Layout */}
         <div className="flex">
@@ -118,20 +139,6 @@ export const GameRoom = ({ roomId, type, onLeaveRoom }: GameRoomProps) => {
           </div>
         </div>
       </div>
-
-      {type == "private" && (
-        <div className="flex items-center justify-center gap-4">
-          <div className="flex items-center gap-2">
-            <Button variant="game" size="lg" onClick={handleStartGame}>
-              ጨዋታውን ይጀምሩ
-            </Button>
-            <Button variant="outline" size="lg" onClick={handleCopyRoomId}>
-              <Copy className="w-4 h-4" />
-              ጓደኞችዎን ይጋብዙ
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
