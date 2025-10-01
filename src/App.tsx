@@ -4,8 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NotFound from "./pages/NotFound";
-import { GameLobby } from "./components/GameLobby";
-import { GameRoom } from "./components/GameRoom";
+import { GameLobby } from "./pages/GameLobby";
+import { GameRoom } from "./pages/GameRoom";
 
 const queryClient = new QueryClient();
 

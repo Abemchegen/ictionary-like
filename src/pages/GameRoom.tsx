@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { DrawingCanvas } from "./DrawingCanvas";
-import { PlayerList, Player } from "./PlayerList";
-import { ChatArea, ChatMessage } from "./ChatArea";
+import { DrawingCanvas } from "../components/DrawingCanvas";
+import { PlayerList, Player } from "../components/PlayerList";
+import { ChatArea, ChatMessage } from "../components/ChatArea";
 
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "./ui/button";
+import { Button } from "../components/ui/button";
 import { Copy } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 

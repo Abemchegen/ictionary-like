@@ -60,12 +60,9 @@ export const GameLobby = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="max-w-4xl w-full">
-        {/* Header */}
-        <div className="text-center mb-12"></div>
-
+      <div className="max-w-5xl w-full">
         {/* Player Name Input */}
-        <Card className="p-6 mb-8 bg-gradient-game border-primary/20">
+        <Card className="p-8 mb-8 bg-gradient-game border-primary/20">
           {" "}
           <div className="flex items-center justify-center gap-3 mb-6">
             <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
