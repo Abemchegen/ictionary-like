@@ -5,7 +5,8 @@ import { ChatArea, ChatMessage } from "../components/ChatArea";
 
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../components/ui/button";
-import { Copy } from "lucide-react";
+import { Card } from "../components/ui/card";
+import { Copy, Trophy } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { 
   roomAPI, 
@@ -13,7 +14,8 @@ import {
   chatAPI, 
   playerAPI, 
   createWebSocketConnection,
-  GameState 
+  GameState,
+  RankingPlayer 
 } from "@/services/api";
 
 export const GameRoom = () => {
@@ -37,7 +39,11 @@ export const GameRoom = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [wordChoices, setWordChoices] = useState<string[]>([]);
+  const [rankings, setRankings] = useState<RankingPlayer[]>([]);
+  const [showRankings, setShowRankings] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch initial room data
   useEffect(() => {
@@ -106,6 +112,13 @@ export const GameRoom = () => {
         case "drawing_updated":
           // Handle drawing update if needed
           break;
+        case "game_ended":
+          setRankings(data.rankings);
+          setGameState(data.gameState);
+          break;
+        case "round_ended":
+          setGameState(data.gameState);
+          break;
         default:
           break;
       }
@@ -141,15 +154,67 @@ export const GameRoom = () => {
     });
   };
 
+  // Game flow management
+  useEffect(() => {
+    if (!roomid || !gameState.isPlaying) return;
+
+    const phase = gameState.phase;
+
+    if (phase === 'word_selection' && isCurrentPlayerDrawing) {
+      // Fetch word choices for the current drawer
+      fetchWordChoices();
+      
+      // Auto-select after 10 seconds if no selection
+      gameTimerRef.current = setTimeout(() => {
+        if (wordChoices.length > 0) {
+          handleSelectWord(wordChoices[0]);
+        }
+      }, 10000);
+    } else if (phase === 'drawing') {
+      // Drawing phase - 60 seconds
+      gameTimerRef.current = setTimeout(async () => {
+        await handleEndRound();
+      }, 60000);
+    } else if (phase === 'round_end') {
+      // Show round results for a few seconds then move to next round
+      gameTimerRef.current = setTimeout(async () => {
+        await handleNextRound();
+      }, 5000);
+    } else if (phase === 'game_end') {
+      // Show final rankings for 30 seconds then restart
+      setShowRankings(true);
+      gameTimerRef.current = setTimeout(async () => {
+        await handleRestartGame();
+      }, 30000);
+    }
+
+    return () => {
+      if (gameTimerRef.current) {
+        clearTimeout(gameTimerRef.current);
+      }
+    };
+  }, [gameState.phase, gameState.isPlaying, roomid, isCurrentPlayerDrawing]);
+
+  const fetchWordChoices = async () => {
+    if (!roomid) return;
+    try {
+      const choices = await gameAPI.getWordChoices(roomid);
+      setWordChoices(choices.words);
+    } catch (error) {
+      console.error("Failed to fetch word choices:", error);
+    }
+  };
+
   const handleStartGame = async () => {
     if (!roomid || !currentPlayerId) return;
 
     try {
-      const newGameState = await gameAPI.startGame(roomid, currentPlayerId);
+      const endpoint = type === 'private' ? gameAPI.startPrivateGame : gameAPI.startGame;
+      const newGameState = await endpoint(roomid, currentPlayerId);
       setGameState(newGameState);
       toast({
         title: "Game started!",
-        description: "Let the drawing begin!",
+        description: "Get ready to draw!",
       });
     } catch (error) {
       console.error("Failed to start game:", error);
@@ -161,11 +226,81 @@ export const GameRoom = () => {
     }
   };
 
-  const handleSendMessage = async (message: string) => {
+  const handleSelectWord = async (word: string) => {
     if (!roomid || !currentPlayerId) return;
 
     try {
-      await chatAPI.sendMessage(roomid, currentPlayerId, message);
+      const newGameState = await gameAPI.selectWordAndStartGame(roomid, currentPlayerId, word);
+      setGameState(newGameState);
+      setWordChoices([]);
+      toast({
+        title: "Word selected!",
+        description: "Start drawing!",
+      });
+    } catch (error) {
+      console.error("Failed to select word:", error);
+    }
+  };
+
+  const handleEndRound = async () => {
+    if (!roomid) return;
+
+    try {
+      const newGameState = await gameAPI.endRound(roomid);
+      setGameState(newGameState);
+    } catch (error) {
+      console.error("Failed to end round:", error);
+    }
+  };
+
+  const handleNextRound = async () => {
+    if (!roomid) return;
+
+    try {
+      // Get next drawer
+      const { playerId } = await gameAPI.nextDrawer(roomid);
+      
+      // Fetch updated game state
+      const newGameState = await gameAPI.getGameState(roomid);
+      setGameState(newGameState);
+    } catch (error) {
+      console.error("Failed to move to next round:", error);
+    }
+  };
+
+  const handleRestartGame = async () => {
+    if (!roomid) return;
+
+    try {
+      setShowRankings(false);
+      const newGameState = await gameAPI.restartGame(roomid);
+      setGameState(newGameState);
+      toast({
+        title: "New game started!",
+        description: "Let's play again!",
+      });
+    } catch (error) {
+      console.error("Failed to restart game:", error);
+    }
+  };
+
+  const handleSendMessage = async (message: string) => {
+    if (!roomid || !currentPlayerId || isCurrentPlayerDrawing) return;
+
+    try {
+      // Submit as guess during game
+      if (gameState.isPlaying && gameState.phase === 'drawing') {
+        const result = await gameAPI.submitGuess(roomid, currentPlayerId, message);
+        if (result.correct) {
+          await gameAPI.correctGuess(roomid, currentPlayerId);
+          toast({
+            title: "Correct! 🎉",
+            description: "You guessed the word!",
+          });
+        }
+      } else {
+        await chatAPI.sendMessage(roomid, currentPlayerId, message);
+      }
     } catch (error) {
       console.error("Failed to send message:", error);
       toast({
@@ -232,6 +367,70 @@ export const GameRoom = () => {
   return (
     <div className="min-h-screen w-full h-full bg-background py-3 px-1">
       <div className="w-full mx-auto">
+        {/* Rankings Modal */}
+        {showRankings && rankings.length > 0 && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <Card className="p-8 max-w-md w-full">
+              <div className="text-center mb-6">
+                <Trophy className="w-16 h-16 mx-auto mb-4 text-accent" />
+                <h2 className="text-3xl font-bold text-primary">Game Over!</h2>
+                <p className="text-muted-foreground mt-2">Final Rankings</p>
+              </div>
+              <div className="space-y-3">
+                {rankings.map((player, index) => (
+                  <div
+                    key={player.id}
+                    className={`flex items-center justify-between p-4 rounded-lg ${
+                      index === 0
+                        ? "bg-accent/20 border-2 border-accent"
+                        : "bg-muted"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl font-bold text-primary">
+                        #{player.rank}
+                      </div>
+                      <div className="font-medium">{player.name}</div>
+                    </div>
+                    <div className="text-xl font-bold text-accent">
+                      {player.score}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-6">
+                Starting new game in a moment...
+              </p>
+            </Card>
+          </div>
+        )}
+
+        {/* Word Selection Modal */}
+        {gameState.phase === 'word_selection' && isCurrentPlayerDrawing && wordChoices.length > 0 && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <Card className="p-8 max-w-md w-full">
+              <h2 className="text-2xl font-bold text-primary text-center mb-6">
+                Choose a word to draw
+              </h2>
+              <div className="space-y-3">
+                {wordChoices.map((word, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    className="w-full text-lg py-6 hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleSelectWord(word)}
+                  >
+                    {word}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                10 seconds to choose...
+              </p>
+            </Card>
+          </div>
+        )}
+
         {/* Private Room Controls */}
         {type === "private" && !gameState.isPlaying && (
           <div className="mb-2 flex items-center w-full justify-center ">
@@ -284,7 +483,7 @@ export const GameRoom = () => {
               messages={messages}
               onSendMessage={handleSendMessage}
               isDrawing={isCurrentPlayerDrawing}
-              canGuess={gameState.isPlaying}
+              canGuess={gameState.isPlaying && gameState.phase === 'drawing'}
             />
           </div>
         </div>

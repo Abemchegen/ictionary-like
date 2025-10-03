@@ -25,6 +25,15 @@ export interface GameState {
   round: number;
   totalRounds: number;
   isPlaying: boolean;
+  phase?: 'waiting' | 'word_selection' | 'drawing' | 'round_end' | 'game_end';
+}
+
+export interface WordChoice {
+  words: string[];
+}
+
+export interface RankingPlayer extends Player {
+  rank: number;
 }
 
 export interface Room {
@@ -109,7 +118,7 @@ export const roomAPI = {
 
 // Game APIs
 export const gameAPI = {
-  // Start the game
+  // Start the game (public room)
   startGame: async (roomId: string, playerId: string): Promise<GameState> => {
     const response = await fetch(`${BASE_URL}/rooms/${roomId}/start`, {
       method: 'POST',
@@ -120,10 +129,39 @@ export const gameAPI = {
     return response.json();
   },
 
+  // Start private game
+  startPrivateGame: async (roomId: string, playerId: string): Promise<GameState> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/start-private`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId }),
+    });
+    if (!response.ok) throw new Error('Failed to start private game');
+    return response.json();
+  },
+
   // Get current game state
   getGameState: async (roomId: string): Promise<GameState> => {
     const response = await fetch(`${BASE_URL}/rooms/${roomId}/game-state`);
     if (!response.ok) throw new Error('Failed to fetch game state');
+    return response.json();
+  },
+
+  // Get word choices
+  getWordChoices: async (roomId: string): Promise<WordChoice> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/word-choices`);
+    if (!response.ok) throw new Error('Failed to fetch word choices');
+    return response.json();
+  },
+
+  // Select word and start drawing phase
+  selectWordAndStartGame: async (roomId: string, playerId: string, word: string): Promise<GameState> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/select-word`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId, word }),
+    });
+    if (!response.ok) throw new Error('Failed to select word');
     return response.json();
   },
 
@@ -136,6 +174,16 @@ export const gameAPI = {
     });
     if (!response.ok) throw new Error('Failed to submit guess');
     return response.json();
+  },
+
+  // Notify correct guess
+  correctGuess: async (roomId: string, playerId: string): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/correct-guess`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId }),
+    });
+    if (!response.ok) throw new Error('Failed to notify correct guess');
   },
 
   // Like a drawing
@@ -156,6 +204,46 @@ export const gameAPI = {
       body: JSON.stringify({ playerId }),
     });
     if (!response.ok) throw new Error('Failed to dislike drawing');
+  },
+
+  // End current round
+  endRound: async (roomId: string): Promise<GameState> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/end-round`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Failed to end round');
+    return response.json();
+  },
+
+  // Get next drawer
+  nextDrawer: async (roomId: string): Promise<{ playerId: string }> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/next-drawer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Failed to get next drawer');
+    return response.json();
+  },
+
+  // End game
+  endGame: async (roomId: string): Promise<{ rankings: RankingPlayer[] }> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/end-game`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Failed to end game');
+    return response.json();
+  },
+
+  // Restart game
+  restartGame: async (roomId: string): Promise<GameState> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/restart`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Failed to restart game');
+    return response.json();
   },
 };
 
