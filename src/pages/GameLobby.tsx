@@ -23,7 +23,7 @@ export const GameLobby = () => {
     setError("");
     setLoading(true);
     try {
-      const room = await roomAPI.createRoom(playerName.trim(), 'private');
+      const room = await roomAPI.createRoom(playerName.trim(), "private");
       navigate(`/gameroom?type=private&id=${room.id}`);
     } catch (err) {
       setError("Failed to create room. Please try again.");
@@ -64,15 +64,15 @@ export const GameLobby = () => {
       setError("Please enter your name");
       return;
     }
-    if (!joinRoomId.trim()) {
+    if (!joinRoomId) {
       setError("Please enter room code");
       return;
     }
     setError("");
     setLoading(true);
     try {
-      await playerAPI.joinRoom(joinRoomId.trim(), playerName.trim());
-      navigate(`/gameroom?type=private&id=${joinRoomId.trim()}`);
+      await playerAPI.joinRoom(joinRoomId, playerName.trim());
+      navigate(`/gameroom?type=private&id=${joinRoomId}`);
     } catch (err) {
       setError("Failed to join room. Invalid room code.");
       toast({
@@ -176,9 +176,8 @@ export const GameLobby = () => {
               <Input
                 placeholder="Enter room code"
                 value={joinRoomId}
-                onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
+                onChange={(e) => setJoinRoomId(e.target.value)}
                 className="text-center bg-background border-primary/30"
-                maxLength={6}
               />
               <Button
                 onClick={handleJoinPrivateRoom}
