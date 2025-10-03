@@ -4,47 +4,62 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Users, Plus, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { roomAPI, playerAPI } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 export const GameLobby = () => {
   const [playerName, setPlayerName] = useState("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [roomId, setRoomId] = useState<string | null>(null);
-  const [joinRoomId, setJoinRoomId] = useState<string | "">("");
-  const [currentRoomType, setCurrentRoomType] = useState<string | null>(null);
+  const [joinRoomId, setJoinRoomId] = useState<string>("");
+  const { toast } = useToast();
 
-  useEffect(() => {
-    if (roomId && currentRoomType) {
-      if (currentRoomType == "private") {
-        navigate(`/gameroom?type=private&id=${roomId}`);
-      } else {
-        navigate(`/gameroom?type=public&id=${roomId}`);
-      }
-    }
-  }, [roomId, currentRoomType]);
-
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
     if (!playerName.trim()) {
       setError("Please enter your name");
       return;
     }
     setError("");
-    const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setRoomId(newRoomId);
-    setCurrentRoomType("private");
+    setLoading(true);
+    try {
+      const room = await roomAPI.createRoom(playerName.trim(), 'private');
+      navigate(`/gameroom?type=private&id=${room.id}`);
+    } catch (err) {
+      setError("Failed to create room. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to create room. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleJoinCommonRoom = () => {
+  const handleJoinCommonRoom = async () => {
     if (!playerName.trim()) {
       setError("Please enter your name");
       return;
     }
     setError("");
-    setRoomId("COMMON");
-    setCurrentRoomType("Common");
+    setLoading(true);
+    try {
+      const room = await roomAPI.joinPublicRoom(playerName.trim());
+      navigate(`/gameroom?type=public&id=${room.id}`);
+    } catch (err) {
+      setError("Failed to join public room. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to join public room. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleJoinPrivateRoom = () => {
+  const handleJoinPrivateRoom = async () => {
     if (!playerName.trim()) {
       setError("Please enter your name");
       return;
@@ -54,8 +69,20 @@ export const GameLobby = () => {
       return;
     }
     setError("");
-    setRoomId(joinRoomId.trim());
-    setCurrentRoomType("private");
+    setLoading(true);
+    try {
+      await playerAPI.joinRoom(joinRoomId.trim(), playerName.trim());
+      navigate(`/gameroom?type=private&id=${joinRoomId.trim()}`);
+    } catch (err) {
+      setError("Failed to join room. Invalid room code.");
+      toast({
+        title: "Error",
+        description: "Failed to join room. Invalid room code.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -107,9 +134,10 @@ export const GameLobby = () => {
                 variant="game"
                 size="lg"
                 className="w-full"
+                disabled={loading}
               >
                 <Plus className="w-5 h-5" />
-                Create Room
+                {loading ? "Creating..." : "Create Room"}
               </Button>
             </div>
           </Card>
@@ -131,9 +159,10 @@ export const GameLobby = () => {
                 variant="accent"
                 size="lg"
                 className="w-full"
+                disabled={loading}
               >
                 <Users className="w-5 h-5" />
-                Join Public
+                {loading ? "Joining..." : "Join Public"}
               </Button>
             </div>
           </Card>
@@ -146,14 +175,14 @@ export const GameLobby = () => {
             <div className="flex gap-2">
               <Input
                 placeholder="Enter room code"
-                value={roomId}
+                value={joinRoomId}
                 onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
                 className="text-center bg-background border-primary/30"
                 maxLength={6}
               />
               <Button
                 onClick={handleJoinPrivateRoom}
-                disabled={!joinRoomId.trim()}
+                disabled={!joinRoomId.trim() || loading}
                 variant="outline"
                 size="icon"
               >

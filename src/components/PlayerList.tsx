@@ -16,6 +16,7 @@ interface PlayerListProps {
   totalRounds: number;
   onLeaveRoom: () => void;
   timeLeft: number;
+  onPlayerThumbsUp?: (playerId: string, playerName: string) => void;
 }
 
 export const PlayerList = ({
@@ -24,6 +25,7 @@ export const PlayerList = ({
   totalRounds,
   onLeaveRoom,
   timeLeft,
+  onPlayerThumbsUp,
 }: PlayerListProps) => {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
   const formatTime = (seconds: number) => {
@@ -74,10 +76,20 @@ export const PlayerList = ({
                 {player.isDrawing && <p>🎨</p>}
               </div>
 
-              <div className="flex items-center">
+              <div className="flex items-center gap-3">
+                {/* Thumbs Up Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onPlayerThumbsUp?.(player.id, player.name)}
+                  className="h-8 px-2 hover:bg-primary/20 hover:text-primary"
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                </Button>
+
                 {/* Score */}
                 <div
-                  className={`font-bold text-sm ${
+                  className={`font-bold text-lg ${
                     index === 0 && player.score > 0
                       ? "text-accent"
                       : "text-primary"
@@ -97,6 +109,22 @@ export const PlayerList = ({
             <p>Waiting for players...</p>
           </div>
         )}
+      </div>
+      
+      <div className="flex items-center justify-between text-sm text-muted-foreground mt-4 pt-4 border-t border-border">
+        <Button
+          variant="ghost"
+          onClick={onLeaveRoom}
+          className="flex items-center gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-600"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Leave Room
+        </Button>
+
+        <div className="flex items-center gap-1">
+          <Clock className="w-4 h-4" />
+          <span>{timeLeft}s left</span>
+        </div>
       </div>
     </Card>
   );
