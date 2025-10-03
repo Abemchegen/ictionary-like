@@ -166,7 +166,8 @@ export const chatAPI = {
     const response = await fetch(`${BASE_URL}/rooms/${roomId}/messages`);
     if (!response.ok) throw new Error('Failed to fetch messages');
     const data = await response.json();
-    return data.map((msg: any) => ({
+    const messages = Array.isArray(data) ? data : [];
+    return messages.map((msg: any) => ({
       ...msg,
       timestamp: new Date(msg.timestamp),
     }));
