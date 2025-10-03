@@ -1,5 +1,3 @@
-// API service for backend integration
-// Replace BASE_URL with your actual backend URL
 const BASE_URL = 'http://localhost:3000/api'; // TODO: Update with your backend URL
 
 export interface Player {
