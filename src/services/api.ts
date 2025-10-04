@@ -30,11 +30,11 @@ export interface GameState {
 }
 
 export interface WordChoice {
-  words: string[];
+  choices: string[];
 }
 
-export interface RankingPlayer extends Player {
-  rank: number;
+export interface TopPlayer extends Player {
+  rank?: number;
 }
 
 export interface Room {
@@ -42,6 +42,7 @@ export interface Room {
   type: 'private' | 'public';
   players: Player[];
   gameState: GameState;
+  ownerId: string;
 }
 
 /**
@@ -105,8 +106,19 @@ export const playerAPI = {
     return getJson<Player[]>(`${BASE_URL}/rooms/${roomId}/players`);
   },
 
-  thumbsUpPlayer: async (roomId: string, playerId: string, targetPlayerId: string): Promise<void> => {
-    await postJson(`${BASE_URL}/rooms/${roomId}/thumbsup`, { playerId, targetPlayerId });
+  // Give thumbs to a player
+  thumbsPlayer: async (roomId: string, playerId: string, targetPlayerId: string, thumbs: boolean): Promise<ChatMessage> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/thumbs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId, targetPlayerId, thumbs }),
+    });
+    if (!response.ok) throw new Error('Failed to give thumbs');
+    const data = await response.json();
+    return {
+      ...data,
+      timestamp: new Date(data.timestamp),
+    };
   },
 };
 
@@ -147,12 +159,25 @@ export const gameAPI = {
     return postJson<GameState>(`${BASE_URL}/rooms/${roomId}/select-word`, { playerId, word });
   },
 
-  submitGuess: async (roomId: string, playerId: string, guess: string): Promise<{ correct: boolean; close: boolean }> => {
-    return postJson<{ correct: boolean; close: boolean }>(`${BASE_URL}/rooms/${roomId}/guess`, { playerId, guess });
+  // Submit a guess
+  submitGuess: async (roomId: string, playerId: string, guess: string): Promise<Record<string, boolean>> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/guess`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId, guess }),
+    });
+    if (!response.ok) throw new Error('Failed to submit guess');
+    return response.json();
   },
 
-  correctGuess: async (roomId: string, playerId: string): Promise<void> => {
-    await postJson(`${BASE_URL}/rooms/${roomId}/correct-guess`, { playerId });
+  // Notify correct guess
+  correctGuess: async (roomId: string, playerId: string, points: number): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/correct-guess`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId, points }),
+    });
+    if (!response.ok) throw new Error('Failed to notify correct guess');
   },
 
   likeDrawing: async (roomId: string, playerId: string): Promise<void> => {
@@ -163,16 +188,35 @@ export const gameAPI = {
     await postJson(`${BASE_URL}/rooms/${roomId}/dislike`, { playerId });
   },
 
-  endRound: async (roomId: string): Promise<GameState> => {
-    return postJson<GameState>(`${BASE_URL}/rooms/${roomId}/end-round`);
+  // End current round
+  endRound: async (roomId: string, word: string): Promise<GameState> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/end-round`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word }),
+    });
+    if (!response.ok) throw new Error('Failed to end round');
+    return response.json();},
+
+
+  // Get next drawer
+  nextDrawer: async (roomId: string): Promise<{ nextDrawer: Player }> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/next-drawer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Failed to get next drawer');
+    return response.json();
   },
 
-  nextDrawer: async (roomId: string): Promise<{ playerId: string }> => {
-    return postJson<{ playerId: string }>(`${BASE_URL}/rooms/${roomId}/next-drawer`);
-  },
-
-  endGame: async (roomId: string): Promise<{ rankings: RankingPlayer[] }> => {
-    return postJson<{ rankings: RankingPlayer[] }>(`${BASE_URL}/rooms/${roomId}/end-game`);
+  // End game
+  endGame: async (roomId: string): Promise<{ topPlayers: TopPlayer[] }> => {
+    const response = await fetch(`${BASE_URL}/rooms/${roomId}/end-game`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Failed to end game');
+    return response.json();
   },
 
   restartGame: async (roomId: string): Promise<GameState> => {

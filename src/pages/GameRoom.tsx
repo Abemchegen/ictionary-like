@@ -15,7 +15,7 @@ import {
   playerAPI,
   createWebSocketConnection,
   GameState,
-  RankingPlayer,
+  TopPlayer,
 } from "@/services/api";
 
 export const GameRoom = () => {
@@ -41,7 +41,7 @@ export const GameRoom = () => {
   const [currentPlayerId, setCurrentPlayerId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [wordChoices, setWordChoices] = useState<string[]>([]);
-  const [rankings, setRankings] = useState<RankingPlayer[]>([]);
+  const [rankings, setRankings] = useState<TopPlayer[]>([]);
   const [showRankings, setShowRankings] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -205,7 +205,7 @@ export const GameRoom = () => {
     if (!roomid || !currentPlayerId) return;
     try {
       const choices = await gameAPI.getWordChoices(roomid);
-      setWordChoices(choices.words);
+      setWordChoices(choices.choices);
     } catch (error) {
       console.error("Failed to fetch word choices:", error);
     }
@@ -260,7 +260,10 @@ export const GameRoom = () => {
     if (!roomid) return;
 
     try {
-      const newGameState = await gameAPI.endRound(roomid);
+      const newGameState = await gameAPI.endRound(
+        roomid,
+        gameState.currentWord
+      );
       setGameState(newGameState);
     } catch (error) {
       console.error("Failed to end round:", error);
@@ -272,12 +275,12 @@ export const GameRoom = () => {
 
     try {
       // Get next drawer
-      const { playerId } = await gameAPI.nextDrawer(roomid);
+      const { nextDrawer } = await gameAPI.nextDrawer(roomid);
 
       // Fetch updated game state
       const newGameState = await gameAPI.getGameState(roomid);
       setGameState(newGameState);
-      setCurrentPlayerId(playerId);
+      setCurrentPlayerId(nextDrawer.id);
     } catch (error) {
       console.error("Failed to move to next round:", error);
     }
@@ -311,8 +314,11 @@ export const GameRoom = () => {
           currentPlayerId,
           message
         );
-        if (result.correct) {
-          await gameAPI.correctGuess(roomid, currentPlayerId);
+        // Check if the result indicates correct guess
+        const isCorrect = Object.values(result).some((val) => val === true);
+        if (isCorrect) {
+          // Award points based on time remaining (example: 10 points base)
+          await gameAPI.correctGuess(roomid, currentPlayerId, 10);
           toast({
             title: "Correct! 🎉",
             description: "You guessed the word!",
@@ -363,7 +369,7 @@ export const GameRoom = () => {
     if (!roomid || !currentPlayerId) return;
 
     try {
-      await playerAPI.thumbsUpPlayer(roomid, currentPlayerId, playerId);
+      await playerAPI.thumbsPlayer(roomid, currentPlayerId, playerId, true);
       toast({
         title: `Thumbs up! 👍`,
         description: `You gave ${playerName} a thumbs up!`,
