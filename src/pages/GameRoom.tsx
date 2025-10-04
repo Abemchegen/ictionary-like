@@ -8,14 +8,14 @@ import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Copy, Trophy } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { 
-  roomAPI, 
-  gameAPI, 
-  chatAPI, 
-  playerAPI, 
+import {
+  roomAPI,
+  gameAPI,
+  chatAPI,
+  playerAPI,
   createWebSocketConnection,
   GameState,
-  RankingPlayer 
+  RankingPlayer,
 } from "@/services/api";
 
 export const GameRoom = () => {
@@ -33,6 +33,7 @@ export const GameRoom = () => {
     round: 1,
     totalRounds: 3,
     isPlaying: false,
+    phase: "waiting",
   });
 
   const [players, setPlayers] = useState<Player[]>([]);
@@ -55,17 +56,18 @@ export const GameRoom = () => {
     const fetchRoomData = async () => {
       try {
         setLoading(true);
-        const [room, roomPlayers, roomMessages, roomGameState] = await Promise.all([
-          roomAPI.getRoom(roomid),
-          playerAPI.getPlayers(roomid),
-          chatAPI.getMessages(roomid),
-          gameAPI.getGameState(roomid),
-        ]);
+        const [room, roomPlayers, roomMessages, roomGameState] =
+          await Promise.all([
+            roomAPI.getRoom(roomid),
+            playerAPI.getPlayers(roomid),
+            chatAPI.getMessages(roomid),
+            gameAPI.getGameState(roomid),
+          ]);
 
         setPlayers(roomPlayers);
         setMessages(roomMessages);
         setGameState(roomGameState);
-        
+
         // Get current player ID from localStorage or room data
         const storedPlayerId = localStorage.getItem(`player_${roomid}`);
         if (storedPlayerId) {
@@ -104,10 +106,13 @@ export const GameRoom = () => {
           setGameState(data.gameState);
           break;
         case "new_message":
-          setMessages((prev) => [...prev, {
-            ...data.message,
-            timestamp: new Date(data.message.timestamp),
-          }]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              ...data.message,
+              timestamp: new Date(data.message.timestamp),
+            },
+          ]);
           break;
         case "drawing_updated":
           // Handle drawing update if needed
@@ -134,7 +139,7 @@ export const GameRoom = () => {
   const isCurrentPlayerDrawing = gameState.currentPlayer === currentPlayerId;
   const handleLeaveRoom = async () => {
     if (!roomid || !currentPlayerId) return;
-    
+
     try {
       await playerAPI.leaveRoom(roomid, currentPlayerId);
       localStorage.removeItem(`player_${roomid}`);
@@ -160,27 +165,27 @@ export const GameRoom = () => {
 
     const phase = gameState.phase;
 
-    if (phase === 'word_selection' && isCurrentPlayerDrawing) {
+    if (phase === "word_selection" && isCurrentPlayerDrawing) {
       // Fetch word choices for the current drawer
       fetchWordChoices();
-      
+
       // Auto-select after 10 seconds if no selection
       gameTimerRef.current = setTimeout(() => {
         if (wordChoices.length > 0) {
           handleSelectWord(wordChoices[0]);
         }
       }, 10000);
-    } else if (phase === 'drawing') {
+    } else if (phase === "drawing") {
       // Drawing phase - 60 seconds
       gameTimerRef.current = setTimeout(async () => {
         await handleEndRound();
       }, 60000);
-    } else if (phase === 'round_end') {
+    } else if (phase === "round_end") {
       // Show round results for a few seconds then move to next round
       gameTimerRef.current = setTimeout(async () => {
         await handleNextRound();
       }, 5000);
-    } else if (phase === 'game_end') {
+    } else if (phase === "game_end") {
       // Show final rankings for 30 seconds then restart
       setShowRankings(true);
       gameTimerRef.current = setTimeout(async () => {
@@ -196,7 +201,8 @@ export const GameRoom = () => {
   }, [gameState.phase, gameState.isPlaying, roomid, isCurrentPlayerDrawing]);
 
   const fetchWordChoices = async () => {
-    if (!roomid) return;
+    // need both roomid and currentPlayerId to fetch word choices
+    if (!roomid || !currentPlayerId) return;
     try {
       const choices = await gameAPI.getWordChoices(roomid);
       setWordChoices(choices.words);
@@ -206,12 +212,14 @@ export const GameRoom = () => {
   };
 
   const handleStartGame = async () => {
-    if (!roomid || !currentPlayerId) return;
+    if (!roomid) return;
 
     try {
-      const endpoint = type === 'private' ? gameAPI.startPrivateGame : gameAPI.startGame;
+      const endpoint =
+        type === "private" ? gameAPI.startPrivateGame : gameAPI.startGame;
       const newGameState = await endpoint(roomid, currentPlayerId);
       setGameState(newGameState);
+      setCurrentPlayerId(newGameState.currentPlayer);
       toast({
         title: "Game started!",
         description: "Get ready to draw!",
@@ -220,7 +228,9 @@ export const GameRoom = () => {
       console.error("Failed to start game:", error);
       toast({
         title: "Error",
-        description: "Failed to start game. Please try again.",
+        description:
+          (error instanceof Error ? error.message : String(error)) +
+          ". Please try again.",
         variant: "destructive",
       });
     }
@@ -230,7 +240,11 @@ export const GameRoom = () => {
     if (!roomid || !currentPlayerId) return;
 
     try {
-      const newGameState = await gameAPI.selectWordAndStartGame(roomid, currentPlayerId, word);
+      const newGameState = await gameAPI.selectWordAndStartGame(
+        roomid,
+        currentPlayerId,
+        word
+      );
       setGameState(newGameState);
       setWordChoices([]);
       toast({
@@ -259,10 +273,11 @@ export const GameRoom = () => {
     try {
       // Get next drawer
       const { playerId } = await gameAPI.nextDrawer(roomid);
-      
+
       // Fetch updated game state
       const newGameState = await gameAPI.getGameState(roomid);
       setGameState(newGameState);
+      setCurrentPlayerId(playerId);
     } catch (error) {
       console.error("Failed to move to next round:", error);
     }
@@ -275,6 +290,7 @@ export const GameRoom = () => {
       setShowRankings(false);
       const newGameState = await gameAPI.restartGame(roomid);
       setGameState(newGameState);
+      setCurrentPlayerId(newGameState.currentPlayer);
       toast({
         title: "New game started!",
         description: "Let's play again!",
@@ -289,8 +305,12 @@ export const GameRoom = () => {
 
     try {
       // Submit as guess during game
-      if (gameState.isPlaying && gameState.phase === 'drawing') {
-        const result = await gameAPI.submitGuess(roomid, currentPlayerId, message);
+      if (gameState.isPlaying && gameState.phase === "drawing") {
+        const result = await gameAPI.submitGuess(
+          roomid,
+          currentPlayerId,
+          message
+        );
         if (result.correct) {
           await gameAPI.correctGuess(roomid, currentPlayerId);
           toast({
@@ -357,7 +377,9 @@ export const GameRoom = () => {
     return (
       <div className="min-h-screen w-full h-full bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="text-2xl font-bold text-primary mb-2">Loading room...</div>
+          <div className="text-2xl font-bold text-primary mb-2">
+            Loading room...
+          </div>
           <div className="text-muted-foreground">Please wait</div>
         </div>
       </div>
@@ -406,27 +428,36 @@ export const GameRoom = () => {
         )}
 
         {/* Word Selection Modal */}
-        {gameState.phase === 'word_selection' && isCurrentPlayerDrawing && wordChoices.length > 0 && (
+        {gameState.phase === "word_selection" && isCurrentPlayerDrawing && (
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
             <Card className="p-8 max-w-md w-full">
               <h2 className="text-2xl font-bold text-primary text-center mb-6">
                 Choose a word to draw
               </h2>
               <div className="space-y-3">
-                {wordChoices.map((word, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="w-full text-lg py-6 hover:bg-primary hover:text-primary-foreground"
-                    onClick={() => handleSelectWord(word)}
-                  >
-                    {word}
-                  </Button>
-                ))}
+                {Array.isArray(wordChoices) && wordChoices.length > 0 ? (
+                  wordChoices.map((word, index) => (
+                    <div>
+                      {" "}
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className="w-full text-lg py-6 hover:bg-primary hover:text-primary-foreground"
+                        onClick={() => handleSelectWord(word)}
+                      >
+                        {word}
+                      </Button>
+                      <p className="text-center text-sm text-muted-foreground mt-4">
+                        10 seconds to choose...
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-muted-foreground py-6">
+                    Loading words...
+                  </div>
+                )}
               </div>
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                10 seconds to choose...
-              </p>
             </Card>
           </div>
         )}
@@ -463,7 +494,6 @@ export const GameRoom = () => {
               onLeaveRoom={handleLeaveRoom}
               currentRound={gameState.round}
               totalRounds={gameState.totalRounds}
-              onPlayerThumbsUp={handlePlayerThumbsUp}
             />
           </div>
 
@@ -483,7 +513,7 @@ export const GameRoom = () => {
               messages={messages}
               onSendMessage={handleSendMessage}
               isDrawing={isCurrentPlayerDrawing}
-              canGuess={gameState.isPlaying && gameState.phase === 'drawing'}
+              canGuess={gameState.isPlaying && gameState.phase === "drawing"}
             />
           </div>
         </div>

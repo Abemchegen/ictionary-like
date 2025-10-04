@@ -71,7 +71,11 @@ export const GameLobby = () => {
     setError("");
     setLoading(true);
     try {
-      await playerAPI.joinRoom(joinRoomId, playerName.trim());
+      const result = await playerAPI.joinRoom(joinRoomId, playerName.trim());
+      // store player id so GameRoom can pick it up from localStorage
+      if (result && result.player && result.player.id) {
+        localStorage.setItem(`player_${joinRoomId}`, result.player.id);
+      }
       navigate(`/gameroom?type=private&id=${joinRoomId}`);
     } catch (err) {
       setError("Failed to join room. Invalid room code.");

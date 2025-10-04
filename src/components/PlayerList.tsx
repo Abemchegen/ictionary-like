@@ -25,7 +25,6 @@ export const PlayerList = ({
   totalRounds,
   onLeaveRoom,
   timeLeft,
-  onPlayerThumbsUp,
 }: PlayerListProps) => {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
   const formatTime = (seconds: number) => {
@@ -78,14 +77,6 @@ export const PlayerList = ({
 
               <div className="flex items-center gap-3">
                 {/* Thumbs Up Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onPlayerThumbsUp?.(player.id, player.name)}
-                  className="h-8 px-2 hover:bg-primary/20 hover:text-primary"
-                >
-                  <ThumbsUp className="w-4 h-4" />
-                </Button>
 
                 {/* Score */}
                 <div
@@ -110,7 +101,7 @@ export const PlayerList = ({
           </div>
         )}
       </div>
-      
+
       <div className="flex items-center justify-between text-sm text-muted-foreground mt-4 pt-4 border-t border-border">
         <Button
           variant="ghost"
